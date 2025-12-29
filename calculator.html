@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>투자 복리 계산기 | 월 적립식 포함 · 장기 투자 시뮬레이션</title>
+
+<meta name="description" content="초기 투자금과 월 적립금, 연 수익률을 입력하면 복리 기준으로 최종 자산과 수익률을 계산합니다. 장기투자 시뮬레이션 제공.">
+<meta name="robots" content="index,follow">
+
+<!-- 애드센스 승인 후 주석 해제 -->
+<!--
+<script async src="https://pagead2.googlesyndication.com/pagead/js?client=ca-pub-XXXXXXXXXXXX"
+crossorigin="anonymous"></script>
+-->
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+html{scroll-behavior:smooth}
+body{margin:0;background:#f5f6f7;font-family:-apple-system,BlinkMacSystemFont,"Noto Sans KR",sans-serif}
+.wrap{max-width:900px;margin:30px auto;padding:16px}
+.card{background:#fff;border-radius:14px;padding:20px;box-shadow:0 8px 20px rgba(0,0,0,.06)}
+h1{margin:0 0 8px;font-size:22px}
+.sub{color:#666;font-size:13px;margin-bottom:18px}
+
+.row{margin-bottom:16px}
+label{font-size:13px;color:#555}
+.value{float:right;color:#1f766e;font-weight:700}
+input[type=range]{width:100%}
+
+.result{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
+.box{border:1px solid #e5e7eb;border-radius:12px;padding:12px}
+.box p{margin:0;font-size:12px;color:#666}
+.box b{font-size:20px}
+
+canvas{margin-top:16px}
+
+.ad{margin:20px 0;padding:14px;border:1px dashed #aaa;border-radius:12px;font-size:12px;color:#666}
+
+section{margin-top:30px}
+section h2{font-size:15px;margin-bottom:8px}
+section p,section li{font-size:13px;color:#666;line-height:1.7}
+/* 탭 UI */
+.tabs{display:flex;gap:20px;border-bottom:1px solid #e5e7eb;margin-top:32px}
+.tab-btn{
+  font-size:14px;
+  color:#888;
+  cursor:pointer;
+  padding-bottom:10px;
+  position:relative;
+}
+.tab-btn.active{
+  color:#111;
+  font-weight:700;
+}
+.tab-btn.active::after{
+  content:"";
+  position:absolute;
+  left:0;right:0;bottom:-1px;
+  height:2px;
+  background:#1f766e;
+}
+
+.tab-content{
+  display:none;
+  padding-top:20px;
+}
+.tab-content.active{display:block}
+
+.tab-content h2{
+  font-size:15px;
+  margin-bottom:10px;
+}
+.tab-content p{
+  font-size:13px;
+  color:#666;
+  line-height:1.7;
+}
+
+footer{
+  margin-top:40px;
+  text-align:center;
+  font-size:12px;
+  color:#aaa;
+}
+</style>
+</head>
+
+<body>
+<div class="wrap">
+  <div class="card">
+    <h1>투자 복리 계산기</h1>
+    <div class="sub">월 적립식 포함 · 장기투자 수익 시뮬레이션</div>
+
+    <!-- 입력 -->
+    <div class="row">
+      <label>시작금액 (만원) <span class="value" id="vStart">1,000</span></label>
+      <input type="range" id="start" min="0" max="20000" value="1000">
+    </div>
+
+    <div class="row">
+      <label>월 적립금 (만원) <span class="value" id="vMonth">50</span></label>
+      <input type="range" id="month" min="0" max="1000" value="50">
+    </div>
+
+    <div class="row">
+      <label>연 수익률 (%) <span class="value" id="vRate">5</span></label>
+      <input type="range" id="rate" min="0" max="30" step="0.1" value="5">
+    </div>
+
+    <div class="row">
+      <label>투자기간 (년) <span class="value" id="vYear">10</span></label>
+      <input type="range" id="year" min="1" max="40" value="10">
+    </div>
+
+    <!-- 결과 -->
+    <div class="result">
+      <div class="box"><p>총 투자금</p><b id="total">0</b> 만원</div>
+      <div class="box"><p>최종 자산</p><b id="final">0</b> 만원</div>
+      <div class="box"><p>총 수익</p><b id="profit">0</b> 만원</div>
+      <div class="box"><p>총 수익률</p><b id="roi">0</b> %</div>
+    </div>
+
+    <canvas id="chart" height="120"></canvas>
+
+    <!-- <div class="ad"> -->
+    <!-- </div> -->
+
+    <section>
+      <h2>복리 계산기란 무엇인가요?</h2>
+      <p>
+        복리 계산기는 투자 수익이 원금뿐 아니라 이전에 발생한 수익에도 다시 적용되는
+        복리 효과를 계산하는 도구입니다. 장기 투자에서는 투자 기간과 적립 여부가
+        수익에 큰 영향을 미치므로, 본 계산기는 월 적립식 투자까지 반영해
+        현실적인 시뮬레이션을 제공합니다.
+      </p>
+
+      <h2>계산 기준 및 유의사항</h2>
+      <ul>
+        <li>월 적립금은 매월 말 납입 기준으로 계산됩니다.</li>
+        <li>세금, 수수료, 시장 변동성은 반영되지 않습니다.</li>
+        <li>본 결과는 투자 판단의 참고 자료입니다.</li>
+      </ul>
+
+      <h2>자주 묻는 질문 (FAQ)</h2>
+      <p><b>Q.</b> 실제 수익을 보장하나요?<br><b>A.</b> 아닙니다. 참고용 계산기입니다.</p>
+      <p><b>Q.</b> 연 수익률은 어떻게 입력하나요?<br><b>A.</b> 기대 평균 수익률로 입력하세요.</p>
+    </section>
+
+    <!-- 탭 메뉴 -->
+    <div class="tabs">
+      <div class="tab-btn active" data-tab="privacy">개인정보처리방침</div>
+      <div class="tab-btn" data-tab="terms">이용약관</div>
+      <div class="tab-btn" data-tab="contact">문의</div>
+    </div>
+
+    <!-- 탭 콘텐츠 -->
+    <div id="privacy" class="tab-content active">
+      <h2>개인정보처리방침</h2>
+      <p>
+        본 사이트는 투자 복리 계산 기능을 제공하는 정보성 유틸리티 서비스입니다.
+        회원가입을 제공하지 않으며 이름, 이메일, 전화번호 등 개인정보를 수집하지 않습니다.
+      </p>
+      <p>
+        입력한 금액과 수익률 정보는 브라우저 내에서만 계산되며 서버로 전송되지 않습니다.
+        Google AdSense 광고 사용 시 제3자(Google)는 쿠키를 사용할 수 있습니다.
+      </p>
+    </div>
+
+    <div id="terms" class="tab-content">
+      <h2>이용약관</h2>
+      <p>
+        본 서비스는 투자 복리 계산을 돕기 위한 참고용 계산기입니다.
+        계산 결과는 실제 수익을 보장하지 않으며 투자 권유가 아닙니다.
+      </p>
+      <p>
+        모든 투자 판단의 책임은 사용자 본인에게 있으며
+        서비스 운영자는 이에 대한 책임을 지지 않습니다.
+      </p>
+    </div>
+
+    <div id="contact" class="tab-content">
+      <h2>문의</h2>
+      <p>
+        서비스 관련 문의는 아래 이메일로 연락해주세요.
+      </p>
+      <p>
+        📧 <a href="mailto:mare804@naver.com">mare804@naver.com</a>
+      </p>
+    </div>
+
+    <footer>
+      © 2025 Compound Calculator
+    </footer>
+  </div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+let chart;
+
+function comma(x){return Math.round(x).toLocaleString();}
+
+function calc(){
+  const s=+start.value, m=+month.value, r=+rate.value/100, y=+year.value;
+  vStart.innerText=comma(s); vMonth.innerText=comma(m);
+  vRate.innerText=rate.value; vYear.innerText=y;
+
+  let bal=s, data=[bal], labels=["0"];
+  const mr=Math.pow(1+r,1/12)-1;
+
+  for(let i=1;i<=y*12;i++){
+    bal=bal*(1+mr)+m;
+    if(i%12===0){data.push(bal);labels.push(i/12);}
+  }
+
+  const principal=s+m*y*12;
+  final.innerText=comma(bal);
+  total.innerText=comma(principal);
+  profit.innerText=comma(bal-principal);
+  roi.innerText=((bal/principal)*100).toFixed(2);
+
+  if(chart) chart.destroy();
+  chart=new Chart(chartCanvas,{
+    type:"line",
+    data:{labels,datasets:[{data,borderColor:"#1f766e",fill:false}]},
+    options:{plugins:{legend:{display:false}}}
+  });
+}
+
+const chartCanvas=document.getElementById("chart");
+document.querySelectorAll("input").forEach(i=>i.oninput=calc);
+calc();
+
+/* 탭 동작 */
+document.querySelectorAll(".tab-btn").forEach(btn=>{
+  btn.onclick=()=>{
+    document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
+    document.querySelectorAll(".tab-content").forEach(c=>c.classList.remove("active"));
+    btn.classList.add("active");
+    document.getElementById(btn.dataset.tab).classList.add("active");
+  }
+});
+</script>
+</body>
+</html>
